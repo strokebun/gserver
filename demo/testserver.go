@@ -1,6 +1,6 @@
 package main
 
-import "github.com/StrokeBun/gserver/server"
+import "github.com/strokebun/gserver/server"
 
 // @Description: 测试服务器
 // @Author: StrokeBun
