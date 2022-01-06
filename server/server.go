@@ -1,8 +1,8 @@
 package server
 
 import (
-	"errors"
 	"fmt"
+	"github.com/strokebun/gserver/iface"
 	"net"
 )
 
@@ -18,6 +18,8 @@ type Server struct {
 	IP string
 	// 服务绑定的端口
 	Port int
+	// 路由模块
+	router iface.IRouter
 }
 
 func NewServer(name string) *Server {
@@ -26,6 +28,7 @@ func NewServer(name string) *Server {
 		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
 		Port:      6023,
+		router: nil,
 	}
 }
 
@@ -51,8 +54,9 @@ func (s *Server) Start() {
 				fmt.Println("Accept TCP err", err)
 				continue
 			}
+
 			connId++
-			dealConn := NewConnection(conn, connId, Callback)
+			dealConn := NewConnection(conn, connId, s.router)
 			go dealConn.Start()
 		}
 	}()
@@ -67,11 +71,6 @@ func (s *Server) Stop() {
 
 }
 
-func Callback(conn *net.TCPConn, data []byte, len int) error {
-	fmt.Println("echo back to client")
-	if _, err := conn.Write(data[:len]); err != nil {
-		fmt.Println("echo back err ", err)
-		return errors.New("CallbackToClientError")
-	}
-	return nil
+func (s *Server) AddRouter(router iface.IRouter)  {
+	s.router = router
 }

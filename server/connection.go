@@ -16,19 +16,19 @@ type Connection struct {
 	ConnID uint32
 	// 连接是否关闭
 	isClosed bool
-	// 当前连接的处理函数
-	handleAPI iface.Handler
 	// 告知当前连接已经停止的channel
 	ExitChan chan bool
+	// 当前连接对应的路由模块
+	Router iface.IRouter
 }
 
 // 创建连接
-func NewConnection(conn *net.TCPConn, connID uint32, handlerAPI iface.Handler) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, router iface.IRouter) *Connection {
 	return &Connection{
 		Conn:        conn,
 		ConnID:      connID,
+		Router: router,
 		isClosed:    false,
-		handleAPI: handlerAPI,
 		ExitChan: make(chan bool, 1),
 	}
 }
@@ -41,16 +41,21 @@ func (c *Connection) StartReader() {
 
 	for {
 		data := make([]byte, 512)
-		count, err := c.Conn.Read(data)
+		_, err := c.Conn.Read(data)
 		if err != nil {
 			fmt.Println("receive buf err ", err)
 			continue
 		}
-		if err := c.handleAPI(c.Conn, data, count); err != nil {
-			fmt.Println("connId ", c.ConnID, " err: ", err)
-			break
-		}
 
+		request := Request{
+			conn: c,
+			data: data,
+		}
+		go func(req iface.IRequest) {
+			c.Router.PreHandle(req)
+			c.Router.Handle(req)
+			c.Router.AfterHandle(req)
+		}(&request)
 	}
 }
 
@@ -73,7 +78,7 @@ func (c *Connection) GetTCPConnection() *net.TCPConn {
 	return c.Conn
 }
 
-func (c *Connection) GetConnectionID() uint32 {
+func (c *Connection) GetConnectionId() uint32 {
 	return c.ConnID
 }
 
