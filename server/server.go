@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"net"
 )
@@ -43,27 +44,16 @@ func (s *Server) Start() {
 		}
 		fmt.Println("[SUCCESS] start server ", s.Name, " successfully. Listening...")
 
+		var connId uint32 = 0
 		for {
 			conn, err := listener.AcceptTCP()
 			if err != nil {
 				fmt.Println("Accept TCP err", err)
 				continue
 			}
-
-			go func() {
-				for {
-					data := make([]byte, 512)
-					count, err := conn.Read(data)
-					if err != nil {
-						fmt.Println("receive buf err ", err)
-						continue
-					}
-					if _, err := conn.Write(data[:count]); err != nil {
-						fmt.Println("write back buffer err ", err)
-						continue
-					}
-				}
-			}()
+			connId++
+			dealConn := NewConnection(conn, connId, Callback)
+			go dealConn.Start()
 		}
 	}()
 }
@@ -75,4 +65,13 @@ func (s *Server) Serve() {
 
 func (s *Server) Stop() {
 
+}
+
+func Callback(conn *net.TCPConn, data []byte, len int) error {
+	fmt.Println("echo back to client")
+	if _, err := conn.Write(data[:len]); err != nil {
+		fmt.Println("echo back err ", err)
+		return errors.New("CallbackToClientError")
+	}
+	return nil
 }
