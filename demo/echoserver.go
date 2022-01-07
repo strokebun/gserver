@@ -16,9 +16,8 @@ type TestRouter struct {
 
 func (r *TestRouter) Handle(request iface.IRequest)  {
 	conn := request.GetConnection()
-	data := request.GetData()
-	fmt.Println("call back to client")
-	conn.GetTCPConnection().Write(data)
+	fmt.Println("receive from client, msgId = ", request.GetMsgId(), ", data = ", string(request.GetData()))
+	conn.SendMsg(1, request.GetData())
 }
 
 func main() {

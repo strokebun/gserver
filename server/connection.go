@@ -1,8 +1,10 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"github.com/strokebun/gserver/iface"
+	"io"
 	"net"
 )
 
@@ -40,16 +42,32 @@ func (c *Connection) StartReader() {
 	defer c.Stop()
 
 	for {
-		data := make([]byte, 512)
-		_, err := c.Conn.Read(data)
-		if err != nil {
-			fmt.Println("receive buf err ", err)
-			continue
+		dataPack := NewDataPack()
+		header := make([]byte, dataPack.GetHeaderLen())
+		if _, err := io.ReadFull(c.GetTCPConnection(), header); err != nil {
+			fmt.Println("read msg header err ", err)
+			break
 		}
+
+		msg, err := dataPack.Unpack(header)
+		if err != nil {
+			fmt.Println("unpack err ", err)
+			break
+		}
+
+		var data []byte
+		if msg.GetMsgLen() > 0 {
+			data = make([]byte, msg.GetMsgLen())
+			if _, err := io.ReadFull(c.GetTCPConnection(), data); err != nil {
+				fmt.Println("read data ", err)
+				break
+			}
+		}
+		msg.SetData(data)
 
 		request := Request{
 			conn: c,
-			data: data,
+			msg: msg,
 		}
 		go func(req iface.IRequest) {
 			c.Router.PreHandle(req)
@@ -86,6 +104,22 @@ func (c *Connection) RemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
 }
 
-func (c* Connection) Send(data []byte) {
+func (c* Connection) SendMsg(msgId uint32, data []byte) error {
+	if c.isClosed {
+		return errors.New("connection has closed")
+	}
 
+	msg := NewMessage(msgId, data)
+	dataPack := NewDataPack()
+	binaryMsg, err := dataPack.Pack(msg)
+	if err != nil {
+		fmt.Println("pack error, msg id =", msgId)
+		return errors.New("pack message error")
+	}
+
+	if _, err := c.Conn.Write(binaryMsg); err != nil {
+		fmt.Println("write msg error, msg id =", msgId)
+		return errors.New("conn write error")
+	}
+	return nil
  }

@@ -23,10 +23,10 @@ type GlobalObj struct {
 
 	// gserver版本
 	Version string
-	//// 最大连接数
-	//MaxConn int
-	//// 数据包最大字节数
-	//MaxPackageSize uint32
+	// 最大连接数
+	MaxConn int
+	// 数据包最大字节数
+	MaxPackageSize uint32
 }
 
 var GlobalObject * GlobalObj
@@ -50,8 +50,8 @@ func init() {
 		Host:           "0.0.0.0",
 		Port:           6023,
 		Version:        "V1.0",
-		//MaxConn:        1024,
-		//MaxPackageSize: 4096,
+		MaxConn:        1024,
+		MaxPackageSize: 4096,
 	}
 	GlobalObject.Load()
 }

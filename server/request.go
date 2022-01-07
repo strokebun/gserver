@@ -9,7 +9,7 @@ type Request struct {
 	// 和客户端建立的连接
 	conn iface.IConnection
 	// 客户端请求数据
-	data []byte
+	msg iface.IMessage
 }
 
 func (r *Request) GetConnection() iface.IConnection  {
@@ -17,5 +17,9 @@ func (r *Request) GetConnection() iface.IConnection  {
 }
 
 func (r *Request) GetData() []byte {
-	return r.data
+	return r.msg.GetData()
+}
+
+func (r *Request) GetMsgId() uint32 {
+	return r.msg.GetMsgId()
 }
