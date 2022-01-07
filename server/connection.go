@@ -20,6 +20,8 @@ type Connection struct {
 	isClosed bool
 	// 告知当前连接已经停止的channel
 	ExitChan chan bool
+	// 同步读写操作
+	msgChan chan []byte
 	// 当前连接对应的路由模块
 	MsgHandler iface.IMessageHandler
 }
@@ -32,6 +34,7 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler iface.IMessageHa
 		MsgHandler: msgHandler,
 		isClosed:    false,
 		ExitChan: make(chan bool, 1),
+		msgChan: make(chan []byte),
 	}
 }
 
@@ -73,9 +76,26 @@ func (c *Connection) StartReader() {
 	}
 }
 
+func (c *Connection) StartWriter() {
+	fmt.Println("[Writer Goroutine is running]")
+	defer fmt.Println(c.RemoteAddr().String(), "[conn Writer exit!]")
+	for {
+		select {
+		case data := <-c.msgChan:
+			if _, err := c.Conn.Write(data); err != nil {
+				fmt.Println("Send Data error, ", err, ", Conn Writer exit")
+				return
+			}
+		case <-c.ExitChan:
+			return
+		}
+	}
+}
+
 func (c *Connection) Start() {
 	fmt.Println("connection start.. ConnID =", c.ConnID)
 	go c.StartReader()
+	go c.StartWriter()
 }
 
 func (c *Connection) Stop() {
@@ -86,6 +106,7 @@ func (c *Connection) Stop() {
 	c.isClosed = true
 	c.Conn.Close()
 	close(c.ExitChan)
+	close(c.msgChan)
 }
 
 func (c *Connection) GetTCPConnection() *net.TCPConn {
@@ -113,9 +134,6 @@ func (c* Connection) SendMsg(msgId uint32, data []byte) error {
 		return errors.New("pack message error")
 	}
 
-	if _, err := c.Conn.Write(binaryMsg); err != nil {
-		fmt.Println("write msg error, msg id =", msgId)
-		return errors.New("conn write error")
-	}
+	c.msgChan <- binaryMsg
 	return nil
  }
