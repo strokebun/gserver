@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/strokebun/gserver/conf"
 	"github.com/strokebun/gserver/iface"
 	"net"
 )
@@ -24,10 +25,10 @@ type Server struct {
 
 func NewServer(name string) *Server {
 	return &Server{
-		Name:      name,
+		Name:      conf.GlobalObject.Name,
 		IPVersion: "tcp4",
-		IP:        "0.0.0.0",
-		Port:      6023,
+		IP:        conf.GlobalObject.Host,
+		Port:      conf.GlobalObject.Port,
 		router: nil,
 	}
 }
