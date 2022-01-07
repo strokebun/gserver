@@ -19,6 +19,3 @@ type IConnection interface {
 	// 发送数据
 	SendMsg(msgId uint32, data []byte) error
 }
-
-// 当前连接处理函数
-type Handler func(*net.TCPConn, []byte, int) error

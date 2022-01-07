@@ -9,7 +9,6 @@ import (
 // @Description: 测试服务器
 // @Author: StrokeBun
 // @Date: 2022/1/6 16:17
-
 type TestRouter struct {
 	server.BaseRouter
 }
@@ -21,8 +20,8 @@ func (r *TestRouter) Handle(request iface.IRequest)  {
 }
 
 func main() {
-	server := server.NewServer("test server")
+	server := server.NewServer()
 	router := &TestRouter{struct{}{}}
-	server.AddRouter(router)
+	server.AddRouter(1, router)
 	server.Serve()
 }

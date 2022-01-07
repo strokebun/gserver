@@ -21,15 +21,15 @@ type Connection struct {
 	// 告知当前连接已经停止的channel
 	ExitChan chan bool
 	// 当前连接对应的路由模块
-	Router iface.IRouter
+	MsgHandler iface.IMessageHandler
 }
 
 // 创建连接
-func NewConnection(conn *net.TCPConn, connID uint32, router iface.IRouter) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, msgHandler iface.IMessageHandler) *Connection {
 	return &Connection{
 		Conn:        conn,
 		ConnID:      connID,
-		Router: router,
+		MsgHandler: msgHandler,
 		isClosed:    false,
 		ExitChan: make(chan bool, 1),
 	}
@@ -65,25 +65,21 @@ func (c *Connection) StartReader() {
 		}
 		msg.SetData(data)
 
-		request := Request{
+		request := &Request{
 			conn: c,
 			msg: msg,
 		}
-		go func(req iface.IRequest) {
-			c.Router.PreHandle(req)
-			c.Router.Handle(req)
-			c.Router.AfterHandle(req)
-		}(&request)
+		go c.MsgHandler.DoMessageHandler(request)
 	}
 }
 
 func (c *Connection) Start() {
-	fmt.Println("connection start.. ConnID= ", c.ConnID)
+	fmt.Println("connection start.. ConnID =", c.ConnID)
 	go c.StartReader()
 }
 
 func (c *Connection) Stop() {
-	fmt.Println("connection stop.. ConnID = ", c.ConnID)
+	fmt.Println("connection stop.. ConnID =", c.ConnID)
 	if c.isClosed == true {
 		return
 	}

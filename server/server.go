@@ -20,16 +20,16 @@ type Server struct {
 	// 服务绑定的端口
 	Port int
 	// 路由模块
-	router iface.IRouter
+	MsgHandler iface.IMessageHandler
 }
 
-func NewServer(name string) *Server {
+func NewServer() *Server {
 	return &Server{
 		Name:      conf.GlobalObject.Name,
 		IPVersion: "tcp4",
 		IP:        conf.GlobalObject.Host,
 		Port:      conf.GlobalObject.Port,
-		router: nil,
+		MsgHandler: NewMessageHandler(),
 	}
 }
 
@@ -57,7 +57,7 @@ func (s *Server) Start() {
 			}
 
 			connId++
-			dealConn := NewConnection(conn, connId, s.router)
+			dealConn := NewConnection(conn, connId, s.MsgHandler)
 			go dealConn.Start()
 		}
 	}()
@@ -72,6 +72,6 @@ func (s *Server) Stop() {
 
 }
 
-func (s *Server) AddRouter(router iface.IRouter)  {
-	s.router = router
+func (s *Server) AddRouter(msgId uint32, router iface.IRouter)  {
+	s.MsgHandler.AddRouter(msgId, router)
 }

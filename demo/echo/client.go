@@ -20,7 +20,7 @@ func main() {
 	}
 
 	for {
-		clientMsg := server.NewMessage(0, []byte("echo test..."))
+		clientMsg := server.NewMessage(1, []byte("echo test..."))
 		dataPack := server.NewDataPack()
 		binaryMsg, err := dataPack.Pack(clientMsg)
 		if err != nil {
