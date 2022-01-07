@@ -1,4 +1,4 @@
-package server
+package core
 
 import (
 	"errors"
@@ -40,7 +40,7 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler iface.IMessageHa
 
 // 连接的读业务方法
 func (c *Connection) StartReader() {
-	fmt.Println("reader is running..")
+	fmt.Println("[Reader Goroutine is running]")
 	defer fmt.Println("connId = ", c.ConnID, " reader is exit")
 	defer c.Stop()
 

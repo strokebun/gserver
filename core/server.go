@@ -1,4 +1,4 @@
-package server
+package core
 
 import (
 	"fmt"
@@ -46,7 +46,7 @@ func (s *Server) Start() {
 			fmt.Println("listen ", s.IPVersion, " err: ", err)
 			return
 		}
-		fmt.Println("[SUCCESS] start server ", s.Name, " successfully. Listening...")
+		fmt.Println("[SUCCESS] start core", s.Name, "successfully. Listening...")
 
 		var connId uint32 = 0
 		for {

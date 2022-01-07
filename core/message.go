@@ -1,4 +1,4 @@
-package server
+package core
 
 // @Description: 消息传输模块
 // @Author: StrokeBun

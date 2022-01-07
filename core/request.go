@@ -1,4 +1,4 @@
-package server
+package core
 
 import "github.com/strokebun/gserver/iface"
 

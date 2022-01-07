@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/strokebun/gserver/server"
+	"github.com/strokebun/gserver/core"
 	"io"
 	"net"
 	"time"
@@ -20,8 +20,8 @@ func main() {
 	}
 
 	for {
-		clientMsg := server.NewMessage(1, []byte("echo test..."))
-		dataPack := server.NewDataPack()
+		clientMsg := core.NewMessage(1, []byte("echo test..."))
+		dataPack := core.NewDataPack()
 		binaryMsg, err := dataPack.Pack(clientMsg)
 		if err != nil {
 			fmt.Println("pack error ", err)
@@ -47,13 +47,13 @@ func main() {
 		}
 		if headMsg.GetMsgLen() > 0 {
 			// 读入数据
-			serverMsg := headMsg.(*server.Message)
+			serverMsg := headMsg.(*core.Message)
 			serverMsg.Data = make([]byte, headMsg.GetMsgLen())
 			if _, err := io.ReadFull(conn, serverMsg.Data); err != nil {
 				fmt.Println("client read msg err", err)
 				return
 			}
-			fmt.Printf("receive server call back: msg id = %d, data = %s\n", serverMsg.Id, serverMsg.Data)
+			fmt.Printf("receive core call back: msg id = %d, data = %s\n", serverMsg.Id, serverMsg.Data)
 		}
 
 		time.Sleep(time.Second)
