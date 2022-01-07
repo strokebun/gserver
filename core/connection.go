@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"github.com/strokebun/gserver/conf"
 	"github.com/strokebun/gserver/iface"
 	"io"
 	"net"
@@ -72,7 +73,13 @@ func (c *Connection) StartReader() {
 			conn: c,
 			msg: msg,
 		}
-		go c.MsgHandler.DoMessageHandler(request)
+
+		if conf.GlobalObject.WorkPoolSize > 0 {
+			c.MsgHandler.SendMsgToTaskQueue(request)
+		} else {
+			go c.MsgHandler.DoMessageHandler(request)
+		}
+
 	}
 }
 

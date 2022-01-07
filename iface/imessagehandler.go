@@ -8,4 +8,8 @@ type IMessageHandler interface {
 	DoMessageHandler(request IRequest)
 	// 添加消息路由
 	AddRouter(msgId uint32, router IRouter)
+	// 启动worker工作池
+	StartWorkerPool()
+	// 将消息交给任务队列
+	SendMsgToTaskQueue(request IRequest)
 }

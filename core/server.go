@@ -36,6 +36,7 @@ func NewServer() *Server {
 func (s *Server) Start() {
 	fmt.Printf("[START] Server name: %s, listenner at IP: %s, Port %d is starting\n", s.Name, s.IP, s.Port)
 	go func() {
+		s.MsgHandler.StartWorkerPool()
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 		if err != nil {
 			fmt.Println("resolve tcp address error: ", err)
@@ -46,7 +47,7 @@ func (s *Server) Start() {
 			fmt.Println("listen ", s.IPVersion, " err: ", err)
 			return
 		}
-		fmt.Println("[SUCCESS] start core", s.Name, "successfully. Listening...")
+		fmt.Println("[SUCCESS] start server", s.Name, "successfully. Listening...")
 
 		var connId uint32 = 0
 		for {

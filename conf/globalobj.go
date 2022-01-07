@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/strokebun/gserver/iface"
 	"io/ioutil"
+	"runtime"
 )
 
 // @Description: 服务器全局配置
@@ -27,6 +28,11 @@ type GlobalObj struct {
 	MaxConn int
 	// 数据包最大字节数
 	MaxPackageSize uint32
+	// 工作池大小
+	WorkPoolSize uint32
+	// 任务队列最大长度
+	MaxWorkTaskLen uint32
+
 }
 
 var GlobalObject * GlobalObj
@@ -52,6 +58,8 @@ func init() {
 		Version:        "V1.0",
 		MaxConn:        1024,
 		MaxPackageSize: 4096,
+		WorkPoolSize: uint32(runtime.GOMAXPROCS(runtime.NumCPU())),
+		MaxWorkTaskLen: 1024,
 	}
 	GlobalObject.Load()
 }
