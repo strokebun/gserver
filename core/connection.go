@@ -13,6 +13,7 @@ import (
 // @Author: StrokeBun
 // @Date: 2022/1/6 18:30
 type Connection struct {
+	Server iface.IServer
 	// 当前连接的tcp socket
 	Conn *net.TCPConn
 	// 连接id
@@ -28,15 +29,18 @@ type Connection struct {
 }
 
 // 创建连接
-func NewConnection(conn *net.TCPConn, connID uint32, msgHandler iface.IMessageHandler) *Connection {
-	return &Connection{
-		Conn:        conn,
-		ConnID:      connID,
+func NewConnection(server iface.IServer, conn *net.TCPConn, connID uint32, msgHandler iface.IMessageHandler) *Connection {
+	c := &Connection{
+		Server:     server,
+		Conn:       conn,
+		ConnID:     connID,
 		MsgHandler: msgHandler,
-		isClosed:    false,
-		ExitChan: make(chan bool, 1),
-		msgChan: make(chan []byte),
+		isClosed:   false,
+		ExitChan:   make(chan bool, 1),
+		msgChan:    make(chan []byte),
 	}
+	server.GetConnManager().Add(c)
+	return c
 }
 
 // 连接的读业务方法
@@ -112,6 +116,8 @@ func (c *Connection) Stop() {
 	}
 	c.isClosed = true
 	c.Conn.Close()
+	// 从连接管理器删除该连接
+	c.Server.GetConnManager().Remove(c)
 	close(c.ExitChan)
 	close(c.msgChan)
 }

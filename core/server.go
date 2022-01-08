@@ -21,6 +21,8 @@ type Server struct {
 	Port int
 	// 路由模块
 	MsgHandler iface.IMessageHandler
+	// 连接管理模块
+	ConnManager iface.IConnectionManager
 }
 
 func NewServer() *Server {
@@ -30,6 +32,7 @@ func NewServer() *Server {
 		IP:        conf.GlobalObject.Host,
 		Port:      conf.GlobalObject.Port,
 		MsgHandler: NewMessageHandler(),
+		ConnManager: NewConnectionManager(),
 	}
 }
 
@@ -56,9 +59,14 @@ func (s *Server) Start() {
 				fmt.Println("Accept TCP err", err)
 				continue
 			}
+			// 超过最大连接数，关闭该连接
+			if s.ConnManager.ConnNum() >= conf.GlobalObject.MaxConn {
+				conn.Close()
+				continue
+			}
 
 			connId++
-			dealConn := NewConnection(conn, connId, s.MsgHandler)
+			dealConn := NewConnection(s, conn, connId, s.MsgHandler)
 			go dealConn.Start()
 		}
 	}()
@@ -70,9 +78,14 @@ func (s *Server) Serve() {
 }
 
 func (s *Server) Stop() {
-
+	fmt.Println("[STOP] gserver stop, name:", s.Name)
+	s.ConnManager.Clear()
 }
 
 func (s *Server) AddRouter(msgId uint32, router iface.IRouter)  {
 	s.MsgHandler.AddRouter(msgId, router)
+}
+
+func (s *Server) GetConnManager() iface.IConnectionManager {
+	return s.ConnManager
 }

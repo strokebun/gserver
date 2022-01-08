@@ -68,7 +68,6 @@ func (mh *MessageHandler) StartWorkerPool() {
 func (mh *MessageHandler) SendMsgToTaskQueue(request iface.IRequest) {
 	// 根据connID轮询分配任务
 	workerID := request.GetConnection().GetConnectionId() % mh.WorkPoolSize
-	fmt.Println("workerId:", workerID)
 	mh.TaskQueue[workerID] <- request
 }
 
