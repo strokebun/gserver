@@ -23,6 +23,11 @@ type Server struct {
 	MsgHandler iface.IMessageHandler
 	// 连接管理模块
 	ConnManager iface.IConnectionManager
+
+	// 连接创建时的hook函数
+	OnConnStart func(conn iface.IConnection)
+	// 连接停止时的hook函数
+	OnConnStop func(conn iface.IConnection)
 }
 
 func NewServer() *Server {
@@ -88,4 +93,26 @@ func (s *Server) AddRouter(msgId uint32, router iface.IRouter)  {
 
 func (s *Server) GetConnManager() iface.IConnectionManager {
 	return s.ConnManager
+}
+
+func (s *Server) SetOnConnStart(hook func(connection iface.IConnection)) {
+	s.OnConnStart = hook
+}
+
+func (s *Server) SetOnConnStop(hook func(connection iface.IConnection)) {
+	s.OnConnStop = hook
+}
+
+// 调用连接创建时的hook
+func (s *Server) CallOnConnStart(connection iface.IConnection) {
+	if s.OnConnStart != nil {
+		s.OnConnStart(connection)
+	}
+}
+
+// 调用连接停止时的hook
+func (s *Server) CallOnConnStop(connection iface.IConnection) {
+	if s.OnConnStart != nil {
+		s.OnConnStop(connection)
+	}
 }

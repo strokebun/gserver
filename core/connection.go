@@ -107,6 +107,8 @@ func (c *Connection) Start() {
 	fmt.Println("connection start.. ConnID =", c.ConnID)
 	go c.StartReader()
 	go c.StartWriter()
+	// 调用连接创建的hook
+	c.Server.CallOnConnStart(c)
 }
 
 func (c *Connection) Stop() {
@@ -118,6 +120,8 @@ func (c *Connection) Stop() {
 	c.Conn.Close()
 	// 从连接管理器删除该连接
 	c.Server.GetConnManager().Remove(c)
+	// 调用连接停止的hook
+	c.Server.CallOnConnStop(c)
 	close(c.ExitChan)
 	close(c.msgChan)
 }

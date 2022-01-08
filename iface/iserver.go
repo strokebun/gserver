@@ -14,4 +14,13 @@ type IServer interface {
 	AddRouter(msgId uint32, router IRouter)
 	// 获得连接管理器
 	GetConnManager() IConnectionManager
+
+	// 设置连接创建时的hook
+	SetOnConnStart(func(IConnection))
+	// 设置连接断开时的hook
+	SetOnConnStop(func(IConnection))
+	// 调用连接创建时的hook
+	CallOnConnStart(connection IConnection)
+	// 调用连接停止时的hook
+	CallOnConnStop(connection IConnection)
 }
