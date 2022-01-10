@@ -46,20 +46,20 @@ func NewConnection(server iface.IServer, conn *net.TCPConn, connID uint32, msgHa
 // 连接的读业务方法
 func (c *Connection) StartReader() {
 	fmt.Println("[Reader Goroutine is running]")
-	defer fmt.Println("connId = ", c.connId, " reader is exit")
+	defer fmt.Println("connId =", c.connId, ",reader has exited")
 	defer c.Stop()
 
 	for {
 		dataPack := NewDataPack()
 		header := make([]byte, dataPack.GetHeaderLen())
 		if _, err := io.ReadFull(c.GetTCPConnection(), header); err != nil {
-			fmt.Println("read msg header err ", err)
+			fmt.Println("read msg header err", err)
 			break
 		}
 
 		msg, err := dataPack.Unpack(header)
 		if err != nil {
-			fmt.Println("unpack err ", err)
+			fmt.Println("unpack err,", err)
 			break
 		}
 
@@ -67,7 +67,7 @@ func (c *Connection) StartReader() {
 		if msg.GetMsgLen() > 0 {
 			data = make([]byte, msg.GetMsgLen())
 			if _, err := io.ReadFull(c.GetTCPConnection(), data); err != nil {
-				fmt.Println("read data ", err)
+				fmt.Println("read data err,", err)
 				break
 			}
 		}
@@ -94,7 +94,7 @@ func (c *Connection) StartWriter() {
 		select {
 		case data := <-c.msgChan:
 			if _, err := c.conn.Write(data); err != nil {
-				fmt.Println("Send Data error, ", err, ", Conn Writer exit")
+				fmt.Println("Send Data error,", err, ", Conn Writer exit")
 				return
 			}
 		case <-c.exitChan:

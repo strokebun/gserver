@@ -62,7 +62,7 @@ func (d *DataPack) Unpack(data []byte) (iface.IMessage, error) {
 
 	maxPackageSize := conf.GlobalObject.MaxPackageSize
 	if maxPackageSize > 0 && msg.DataLen > maxPackageSize {
-		return nil, errors.New("datapack oversize, maxsize is " + string(maxPackageSize) + " bytes")
+		return nil, errors.New("datapack oversize, maxsize is" + string(maxPackageSize) + "bytes")
 	}
 	return msg, nil
 }

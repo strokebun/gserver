@@ -42,7 +42,7 @@ func (mh *MessageHandler) AddRouter(msgId uint32, router iface.IRouter) {
 		fmt.Println("[WARNING] msgId has existed...")
 	}
 	mh.apis[msgId] = router
-	fmt.Println("add api msgId = ", msgId, " success")
+	fmt.Println("add api msgId =", msgId, "success")
 }
 
 // 启动一个Worker工作流程

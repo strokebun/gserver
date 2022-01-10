@@ -15,7 +15,7 @@ func main() {
 	fmt.Println("[START] echo client start")
 	conn, err := net.Dial("tcp", "127.0.0.1:6023")
 	if err != nil {
-		fmt.Println("client start err ", err)
+		fmt.Println("client start err", err)
 		return
 	}
 
@@ -24,7 +24,7 @@ func main() {
 		dataPack := core.NewDataPack()
 		binaryMsg, err := dataPack.Pack(clientMsg)
 		if err != nil {
-			fmt.Println("pack error ", err)
+			fmt.Println("pack error", err)
 			return
 		}
 

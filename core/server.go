@@ -47,7 +47,7 @@ func (s *Server) Start() {
 		s.msgHandler.StartWorkerPool()
 		addr, err := net.ResolveTCPAddr(s.ipVersion, fmt.Sprintf("%s:%d", s.ip, s.port))
 		if err != nil {
-			fmt.Println("resolve tcp address error: ", err)
+			fmt.Println("resolve tcp address error:", err)
 			return
 		}
 		listener, err := net.ListenTCP(s.ipVersion, addr)
@@ -83,7 +83,7 @@ func (s *Server) Serve() {
 }
 
 func (s *Server) Stop() {
-	fmt.Println("[STOP] gserver stop, name:", s.Name)
+	fmt.Println("[STOP] server stop, name:", s.Name)
 	s.connManager.Clear()
 }
 

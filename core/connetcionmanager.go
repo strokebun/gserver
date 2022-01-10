@@ -27,7 +27,7 @@ func (cm *ConnectionManager) Add(connection iface.IConnection)  {
 	cm.lock.Lock()
 	cm.connections[connection.GetConnectionId()] = connection
 	cm.lock.Unlock()
-	fmt.Println("connection add to ConnManager successfully: conn num = ", cm.ConnNum())
+	fmt.Println("connection add to ConnManager successfully: conn num =", cm.ConnNum())
 }
 
 func (cm *ConnectionManager) Remove(connection iface.IConnection) {
@@ -36,7 +36,7 @@ func (cm *ConnectionManager) Remove(connection iface.IConnection) {
 	delete(cm.connections, connectionId)
 	cm.lock.Unlock()
 
-	fmt.Println("connection Remove ConnID=", connectionId, " successfully: conn num = ", cm.ConnNum())
+	fmt.Println("connection Remove ConnID=", connectionId, "successfully: conn num =", cm.ConnNum())
 }
 
 func (cm *ConnectionManager)  Get(connID uint32) (iface.IConnection, error) {
