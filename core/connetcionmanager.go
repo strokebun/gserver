@@ -2,8 +2,8 @@ package core
 
 import (
 	"errors"
-	"fmt"
 	"github.com/strokebun/gserver/iface"
+	"github.com/strokebun/gserver/log"
 	"sync"
 )
 
@@ -27,7 +27,7 @@ func (cm *ConnectionManager) Add(connection iface.IConnection)  {
 	cm.lock.Lock()
 	cm.connections[connection.GetConnectionId()] = connection
 	cm.lock.Unlock()
-	fmt.Println("connection add to ConnManager successfully: conn num =", cm.ConnNum())
+	log.GlobalLogger.Println("connection add to ConnManager successfully: conn num =", cm.ConnNum())
 }
 
 func (cm *ConnectionManager) Remove(connection iface.IConnection) {
@@ -36,7 +36,7 @@ func (cm *ConnectionManager) Remove(connection iface.IConnection) {
 	delete(cm.connections, connectionId)
 	cm.lock.Unlock()
 
-	fmt.Println("connection Remove ConnID=", connectionId, "successfully: conn num =", cm.ConnNum())
+	log.GlobalLogger.Println("connection Remove ConnID=", connectionId, "successfully: conn num =", cm.ConnNum())
 }
 
 func (cm *ConnectionManager)  Get(connID uint32) (iface.IConnection, error) {
@@ -64,5 +64,5 @@ func (cm *ConnectionManager) Clear() {
 		conn.Stop()
 		delete(cm.connections, connID)
 	}
-	fmt.Println("Clear All Connections successfully")
+	log.GlobalLogger.Println("Clear All Connections successfully")
 }

@@ -2,9 +2,9 @@ package core
 
 import (
 	"errors"
-	"fmt"
 	"github.com/strokebun/gserver/conf"
 	"github.com/strokebun/gserver/iface"
+	"github.com/strokebun/gserver/log"
 	"io"
 	"net"
 )
@@ -45,21 +45,21 @@ func NewConnection(server iface.IServer, conn *net.TCPConn, connID uint32, msgHa
 
 // 连接的读业务方法
 func (c *Connection) StartReader() {
-	fmt.Println("[Reader Goroutine is running]")
-	defer fmt.Println("connId =", c.connId, ",reader has exited")
+	log.GlobalLogger.Println("[Reader Goroutine is running]")
+	defer log.GlobalLogger.Println("connId =", c.connId, ",reader has exited")
 	defer c.Stop()
 
 	for {
 		dataPack := NewDataPack()
 		header := make([]byte, dataPack.GetHeaderLen())
 		if _, err := io.ReadFull(c.GetTCPConnection(), header); err != nil {
-			fmt.Println("read msg header err", err)
+			log.GlobalLogger.Println("read msg header err", err)
 			break
 		}
 
 		msg, err := dataPack.Unpack(header)
 		if err != nil {
-			fmt.Println("unpack err,", err)
+			log.GlobalLogger.Println("unpack err,", err)
 			break
 		}
 
@@ -67,7 +67,7 @@ func (c *Connection) StartReader() {
 		if msg.GetMsgLen() > 0 {
 			data = make([]byte, msg.GetMsgLen())
 			if _, err := io.ReadFull(c.GetTCPConnection(), data); err != nil {
-				fmt.Println("read data err,", err)
+				log.GlobalLogger.Println("read data err,", err)
 				break
 			}
 		}
@@ -88,13 +88,13 @@ func (c *Connection) StartReader() {
 }
 
 func (c *Connection) StartWriter() {
-	fmt.Println("[Writer Goroutine is running]")
-	defer fmt.Println(c.RemoteAddr().String(), "[conn Writer exit!]")
+	log.GlobalLogger.Println("[Writer Goroutine is running]")
+	defer log.GlobalLogger.Println(c.RemoteAddr().String(), "[conn Writer exit!]")
 	for {
 		select {
 		case data := <-c.msgChan:
 			if _, err := c.conn.Write(data); err != nil {
-				fmt.Println("Send Data error,", err, ", Conn Writer exit")
+				log.GlobalLogger.Println("Send Data error,", err, ", Conn Writer exit")
 				return
 			}
 		case <-c.exitChan:
@@ -104,7 +104,7 @@ func (c *Connection) StartWriter() {
 }
 
 func (c *Connection) Start() {
-	fmt.Println("connection start.. ConnID =", c.connId)
+	log.GlobalLogger.Println("connection start.. ConnID =", c.connId)
 	go c.StartReader()
 	go c.StartWriter()
 	// 调用连接创建的hook
@@ -112,7 +112,7 @@ func (c *Connection) Start() {
 }
 
 func (c *Connection) Stop() {
-	fmt.Println("connection stop.. ConnID =", c.connId)
+	log.GlobalLogger.Println("connection stop.. ConnID =", c.connId)
 	if c.isClosed == true {
 		return
 	}
@@ -147,7 +147,7 @@ func (c* Connection) SendMsg(msgId uint32, data []byte) error {
 	dataPack := NewDataPack()
 	binaryMsg, err := dataPack.Pack(msg)
 	if err != nil {
-		fmt.Println("pack error, msg id =", msgId)
+		log.GlobalLogger.Println("pack error, msg id =", msgId)
 		return errors.New("pack message error")
 	}
 

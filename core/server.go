@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/strokebun/gserver/conf"
 	"github.com/strokebun/gserver/iface"
+	"github.com/strokebun/gserver/log"
 	"net"
 )
 
@@ -42,26 +43,24 @@ func NewServer() *Server {
 }
 
 func (s *Server) Start() {
-	fmt.Printf("[START] Server name: %s, listenner at IP: %s, Port %d is starting\n", s.Name, s.ip, s.port)
+	log.GlobalLogger.Printf("[START] Server name: %s, listenner at IP: %s, Port %d is starting\n", s.Name, s.ip, s.port)
 	go func() {
 		s.msgHandler.StartWorkerPool()
 		addr, err := net.ResolveTCPAddr(s.ipVersion, fmt.Sprintf("%s:%d", s.ip, s.port))
 		if err != nil {
-			fmt.Println("resolve tcp address error:", err)
-			return
+			log.GlobalLogger.Panic("resolve tcp address error:", err)
 		}
 		listener, err := net.ListenTCP(s.ipVersion, addr)
 		if err != nil {
-			fmt.Println("listen ", s.ipVersion, " err: ", err)
-			return
+			log.GlobalLogger.Panic("listen ", s.ipVersion, " err: ", err)
 		}
-		fmt.Println("[SUCCESS] start server", s.Name, "successfully. Listening...")
 
+		log.GlobalLogger.Println("[SUCCESS] start server", s.Name, "successfully. Listening...")
 		var connId uint32 = 0
 		for {
 			conn, err := listener.AcceptTCP()
 			if err != nil {
-				fmt.Println("Accept TCP err", err)
+				log.GlobalLogger.Println("Accept TCP err", err)
 				continue
 			}
 			// 超过最大连接数，关闭该连接
@@ -83,7 +82,7 @@ func (s *Server) Serve() {
 }
 
 func (s *Server) Stop() {
-	fmt.Println("[STOP] server stop, name:", s.Name)
+	log.GlobalLogger.Println("[STOP] server stop, name:", s.Name)
 	s.connManager.Clear()
 }
 

@@ -2,8 +2,8 @@ package conf
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/strokebun/gserver/iface"
+	"github.com/strokebun/gserver/log"
 	"io/ioutil"
 	"runtime"
 )
@@ -40,7 +40,7 @@ var GlobalObject * GlobalObj
 func (g *GlobalObj) Load() {
 	data, err := ioutil.ReadFile("gserver.json")
 	if err != nil {
-		fmt.Println("[Warning] there is no configuration file, use default configuration")
+		log.GlobalLogger.Println("[Warning] there is no configuration file, use default configuration")
 		return
 	}
 	json.Unmarshal(data, &GlobalObject)
