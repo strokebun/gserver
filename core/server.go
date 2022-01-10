@@ -14,45 +14,45 @@ type Server struct {
 	// 服务器的名称
 	Name string
 	// tcp4 or other
-	IPVersion string
+	ipVersion string
 	// 服务绑定的IP地址
-	IP string
+	ip string
 	// 服务绑定的端口
-	Port int
+	port int
 	// 路由模块
-	MsgHandler iface.IMessageHandler
+	msgHandler iface.IMessageHandler
 	// 连接管理模块
-	ConnManager iface.IConnectionManager
+	connManager iface.IConnectionManager
 
 	// 连接创建时的hook函数
-	OnConnStart func(conn iface.IConnection)
+	onConnStart func(conn iface.IConnection)
 	// 连接停止时的hook函数
-	OnConnStop func(conn iface.IConnection)
+	onConnStop func(conn iface.IConnection)
 }
 
 func NewServer() *Server {
 	return &Server{
 		Name:      conf.GlobalObject.Name,
-		IPVersion: "tcp4",
-		IP:        conf.GlobalObject.Host,
-		Port:      conf.GlobalObject.Port,
-		MsgHandler: NewMessageHandler(),
-		ConnManager: NewConnectionManager(),
+		ipVersion: "tcp4",
+		ip:        conf.GlobalObject.Host,
+		port:      conf.GlobalObject.Port,
+		msgHandler: NewMessageHandler(),
+		connManager: NewConnectionManager(),
 	}
 }
 
 func (s *Server) Start() {
-	fmt.Printf("[START] Server name: %s, listenner at IP: %s, Port %d is starting\n", s.Name, s.IP, s.Port)
+	fmt.Printf("[START] Server name: %s, listenner at IP: %s, Port %d is starting\n", s.Name, s.ip, s.port)
 	go func() {
-		s.MsgHandler.StartWorkerPool()
-		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
+		s.msgHandler.StartWorkerPool()
+		addr, err := net.ResolveTCPAddr(s.ipVersion, fmt.Sprintf("%s:%d", s.ip, s.port))
 		if err != nil {
 			fmt.Println("resolve tcp address error: ", err)
 			return
 		}
-		listener, err := net.ListenTCP(s.IPVersion, addr)
+		listener, err := net.ListenTCP(s.ipVersion, addr)
 		if err != nil {
-			fmt.Println("listen ", s.IPVersion, " err: ", err)
+			fmt.Println("listen ", s.ipVersion, " err: ", err)
 			return
 		}
 		fmt.Println("[SUCCESS] start server", s.Name, "successfully. Listening...")
@@ -65,13 +65,13 @@ func (s *Server) Start() {
 				continue
 			}
 			// 超过最大连接数，关闭该连接
-			if s.ConnManager.ConnNum() >= conf.GlobalObject.MaxConn {
+			if s.connManager.ConnNum() >= conf.GlobalObject.MaxConn {
 				conn.Close()
 				continue
 			}
 
 			connId++
-			dealConn := NewConnection(s, conn, connId, s.MsgHandler)
+			dealConn := NewConnection(s, conn, connId, s.msgHandler)
 			go dealConn.Start()
 		}
 	}()
@@ -84,35 +84,35 @@ func (s *Server) Serve() {
 
 func (s *Server) Stop() {
 	fmt.Println("[STOP] gserver stop, name:", s.Name)
-	s.ConnManager.Clear()
+	s.connManager.Clear()
 }
 
 func (s *Server) AddRouter(msgId uint32, router iface.IRouter)  {
-	s.MsgHandler.AddRouter(msgId, router)
+	s.msgHandler.AddRouter(msgId, router)
 }
 
 func (s *Server) GetConnManager() iface.IConnectionManager {
-	return s.ConnManager
+	return s.connManager
 }
 
 func (s *Server) SetOnConnStart(hook func(connection iface.IConnection)) {
-	s.OnConnStart = hook
+	s.onConnStart = hook
 }
 
 func (s *Server) SetOnConnStop(hook func(connection iface.IConnection)) {
-	s.OnConnStop = hook
+	s.onConnStop = hook
 }
 
 // 调用连接创建时的hook
 func (s *Server) CallOnConnStart(connection iface.IConnection) {
-	if s.OnConnStart != nil {
-		s.OnConnStart(connection)
+	if s.onConnStart != nil {
+		s.onConnStart(connection)
 	}
 }
 
 // 调用连接停止时的hook
 func (s *Server) CallOnConnStop(connection iface.IConnection) {
-	if s.OnConnStart != nil {
-		s.OnConnStop(connection)
+	if s.onConnStart != nil {
+		s.onConnStop(connection)
 	}
 }

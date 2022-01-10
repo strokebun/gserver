@@ -13,30 +13,30 @@ import (
 // @Author: StrokeBun
 // @Date: 2022/1/6 18:30
 type Connection struct {
-	Server iface.IServer
+	server iface.IServer
 	// 当前连接的tcp socket
-	Conn *net.TCPConn
+	conn *net.TCPConn
 	// 连接id
-	ConnID uint32
+	connId uint32
 	// 连接是否关闭
 	isClosed bool
 	// 告知当前连接已经停止的channel
-	ExitChan chan bool
+	exitChan chan bool
 	// 同步读写操作
 	msgChan chan []byte
 	// 当前连接对应的路由模块
-	MsgHandler iface.IMessageHandler
+	msgHandler iface.IMessageHandler
 }
 
 // 创建连接
 func NewConnection(server iface.IServer, conn *net.TCPConn, connID uint32, msgHandler iface.IMessageHandler) *Connection {
 	c := &Connection{
-		Server:     server,
-		Conn:       conn,
-		ConnID:     connID,
-		MsgHandler: msgHandler,
+		server:     server,
+		conn:       conn,
+		connId:     connID,
+		msgHandler: msgHandler,
 		isClosed:   false,
-		ExitChan:   make(chan bool, 1),
+		exitChan:   make(chan bool, 1),
 		msgChan:    make(chan []byte),
 	}
 	server.GetConnManager().Add(c)
@@ -46,7 +46,7 @@ func NewConnection(server iface.IServer, conn *net.TCPConn, connID uint32, msgHa
 // 连接的读业务方法
 func (c *Connection) StartReader() {
 	fmt.Println("[Reader Goroutine is running]")
-	defer fmt.Println("connId = ", c.ConnID, " reader is exit")
+	defer fmt.Println("connId = ", c.connId, " reader is exit")
 	defer c.Stop()
 
 	for {
@@ -79,9 +79,9 @@ func (c *Connection) StartReader() {
 		}
 
 		if conf.GlobalObject.WorkPoolSize > 0 {
-			c.MsgHandler.SendMsgToTaskQueue(request)
+			c.msgHandler.SendMsgToTaskQueue(request)
 		} else {
-			go c.MsgHandler.DoMessageHandler(request)
+			go c.msgHandler.DoMessageHandler(request)
 		}
 
 	}
@@ -93,49 +93,49 @@ func (c *Connection) StartWriter() {
 	for {
 		select {
 		case data := <-c.msgChan:
-			if _, err := c.Conn.Write(data); err != nil {
+			if _, err := c.conn.Write(data); err != nil {
 				fmt.Println("Send Data error, ", err, ", Conn Writer exit")
 				return
 			}
-		case <-c.ExitChan:
+		case <-c.exitChan:
 			return
 		}
 	}
 }
 
 func (c *Connection) Start() {
-	fmt.Println("connection start.. ConnID =", c.ConnID)
+	fmt.Println("connection start.. ConnID =", c.connId)
 	go c.StartReader()
 	go c.StartWriter()
 	// 调用连接创建的hook
-	c.Server.CallOnConnStart(c)
+	c.server.CallOnConnStart(c)
 }
 
 func (c *Connection) Stop() {
-	fmt.Println("connection stop.. ConnID =", c.ConnID)
+	fmt.Println("connection stop.. ConnID =", c.connId)
 	if c.isClosed == true {
 		return
 	}
 	c.isClosed = true
-	c.Conn.Close()
+	c.conn.Close()
 	// 从连接管理器删除该连接
-	c.Server.GetConnManager().Remove(c)
+	c.server.GetConnManager().Remove(c)
 	// 调用连接停止的hook
-	c.Server.CallOnConnStop(c)
-	close(c.ExitChan)
+	c.server.CallOnConnStop(c)
+	close(c.exitChan)
 	close(c.msgChan)
 }
 
 func (c *Connection) GetTCPConnection() *net.TCPConn {
-	return c.Conn
+	return c.conn
 }
 
 func (c *Connection) GetConnectionId() uint32 {
-	return c.ConnID
+	return c.connId
 }
 
 func (c *Connection) RemoteAddr() net.Addr {
-	return c.Conn.RemoteAddr()
+	return c.conn.RemoteAddr()
 }
 
 func (c* Connection) SendMsg(msgId uint32, data []byte) error {

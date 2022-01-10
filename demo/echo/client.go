@@ -48,12 +48,12 @@ func main() {
 		if headMsg.GetMsgLen() > 0 {
 			// 读入数据
 			serverMsg := headMsg.(*core.Message)
-			serverMsg.Data = make([]byte, headMsg.GetMsgLen())
-			if _, err := io.ReadFull(conn, serverMsg.Data); err != nil {
+			serverMsg.SetData(make([]byte, headMsg.GetMsgLen()))
+			if _, err := io.ReadFull(conn, serverMsg.GetData()); err != nil {
 				fmt.Println("client read msg err", err)
 				return
 			}
-			fmt.Printf("receive core call back: msg id = %d, data = %s\n", serverMsg.Id, serverMsg.Data)
+			fmt.Printf("receive core call back: msg id = %d, data = %s\n", serverMsg.GetMsgId(), serverMsg.GetData())
 		}
 
 		time.Sleep(time.Second)

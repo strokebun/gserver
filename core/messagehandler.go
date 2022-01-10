@@ -11,23 +11,23 @@ import (
 // @Date: 2022/1/7 15:27
 type MessageHandler struct {
 	// msgId以及对应的处理器
-	Apis map[uint32]iface.IRouter
+	apis map[uint32]iface.IRouter
 	// 工作池大小
-	WorkPoolSize uint32
+	workPoolSize uint32
 	// 任务队列
-	TaskQueue []chan iface.IRequest
+	taskQueue []chan iface.IRequest
 }
 
 func NewMessageHandler() *MessageHandler {
 	return &MessageHandler{
-		Apis: make(map[uint32]iface.IRouter),
-		WorkPoolSize: conf.GlobalObject.WorkPoolSize,
-		TaskQueue: make([]chan iface.IRequest, conf.GlobalObject.WorkPoolSize),
+		apis: make(map[uint32]iface.IRouter),
+		workPoolSize: conf.GlobalObject.WorkPoolSize,
+		taskQueue: make([]chan iface.IRequest, conf.GlobalObject.WorkPoolSize),
 	}
 }
 
 func (mh *MessageHandler) DoMessageHandler(request iface.IRequest) {
-	router, ok := mh.Apis[request.GetMsgId()]
+	router, ok := mh.apis[request.GetMsgId()]
 	if !ok {
 		fmt.Println("[WARNING] api msgId =", request.GetMsgId(), "miss")
 		return
@@ -38,10 +38,10 @@ func (mh *MessageHandler) DoMessageHandler(request iface.IRequest) {
 }
 
 func (mh *MessageHandler) AddRouter(msgId uint32, router iface.IRouter) {
-	if _, ok := mh.Apis[msgId]; ok {
+	if _, ok := mh.apis[msgId]; ok {
 		fmt.Println("[WARNING] msgId has existed...")
 	}
-	mh.Apis[msgId] = router
+	mh.apis[msgId] = router
 	fmt.Println("add api msgId = ", msgId, " success")
 }
 
@@ -58,16 +58,16 @@ func (mh *MessageHandler) StartOneWorker(workerID int, taskQueue chan iface.IReq
 
 // 启动worker工作池
 func (mh *MessageHandler) StartWorkerPool() {
-	for i := 0; i < int(mh.WorkPoolSize); i++ {
-		mh.TaskQueue[i] = make(chan iface.IRequest, conf.GlobalObject.MaxWorkTaskLen)
-		go mh.StartOneWorker(i, mh.TaskQueue[i])
+	for i := 0; i < int(mh.workPoolSize); i++ {
+		mh.taskQueue[i] = make(chan iface.IRequest, conf.GlobalObject.MaxWorkTaskLen)
+		go mh.StartOneWorker(i, mh.taskQueue[i])
 	}
 }
 
 // 将消息交给任务队列,由worker进行处理
 func (mh *MessageHandler) SendMsgToTaskQueue(request iface.IRequest) {
 	// 根据connID轮询分配任务
-	workerID := request.GetConnection().GetConnectionId() % mh.WorkPoolSize
-	mh.TaskQueue[workerID] <- request
+	workerID := request.GetConnection().GetConnectionId() % mh.workPoolSize
+	mh.taskQueue[workerID] <- request
 }
 
